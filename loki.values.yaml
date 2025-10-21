@@ -1,0 +1,45 @@
+deploymentMode: Distributed
+
+loki:
+  auth_enabled: true
+  commonConfig:
+    replication_factor: 1
+  schemaConfig:
+    configs:
+      - from: "2024-04-01"
+        store: tsdb
+        object_store: s3
+        schema: v13
+        index:
+          prefix: loki_index_
+          period: 24h
+
+# Explicitly disable scalable + singleBinary so Helm validation passes
+singleBinary: { enabled: false, replicas: 0 }
+read:         { enabled: false, replicas: 0 }
+write:        { enabled: false, replicas: 0 }
+backend:      { enabled: false, replicas: 0 }
+
+# Distributed roles (1 each for local)
+distributor:    { replicas: 1 }
+ingester:
+  replicas: 1
+querier:        { replicas: 1 }
+queryFrontend:  { replicas: 1 }
+queryScheduler: { replicas: 1 }
+indexGateway:   { replicas: 1 }
+compactor:      { replicas: 1 }
+ruler:          { replicas: 0 }
+
+# keep it light locally
+resultsCache: { enabled: false }
+chunksCache:  { enabled: false }
+
+gateway:
+  enabled: true
+  service: { type: ClusterIP }
+# Enable minio for storage
+minio:
+  enabled: true
+auth_enabled: false
+

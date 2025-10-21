@@ -1,0 +1,36 @@
+kind: DaemonSet
+alloy:
+  configMap:
+    create: true
+    name: alloy-config
+    content: |
+      discovery.kubernetes "pods" {
+        role = "pod"
+      }
+      discovery.kubernetes "nodes" {
+        role = "node"
+      }
+
+      prometheus.scrape "pods" {
+        targets         = discovery.kubernetes.pods.targets
+        scrape_interval = "30s"
+        forward_to      = [prometheus.remote_write.mimir.receiver]
+      }
+      prometheus.remote_write "mimir" {
+        endpoint { url = "http://mimir-nginx.monitoring-mimir.svc.cluster.local/api/v1/push" }
+      }
+
+      loki.write "default" {
+        endpoint {
+          url = "http://loki-gateway.monitoring.svc.cluster.local/loki/api/v1/push"
+          headers = { "X-Scope-OrgID" = "1" }
+        }
+      }
+      loki.process "pipe" {
+        forward_to = [loki.write.default.receiver]
+      }
+      loki.source.kubernetes "pods" {
+        targets    = discovery.kubernetes.pods.targets
+        forward_to = [loki.process.pipe.receiver]
+      }
+

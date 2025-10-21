@@ -1,0 +1,27 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: grafana-datasources
+  namespace: monitoring
+  labels:
+    grafana_datasource: "1"
+data:
+  datasources.yaml: |
+    apiVersion: 1
+    datasources:
+      - name: Mimir
+        type: prometheus
+        uid: mimir                  # << fixed UID
+        access: proxy
+        isDefault: true
+        url: http://mimir-nginx.monitoring-mimir.svc.cluster.local/prometheus
+
+      - name: Loki
+        type: loki
+        uid: loki                   # << fixed UID
+        access: proxy
+        url: http://loki-gateway.monitoring.svc.cluster.local
+        jsonData:
+          httpHeaderName1: X-Scope-OrgID
+        secureJsonData:
+          httpHeaderValue1: "1"

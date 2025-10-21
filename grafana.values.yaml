@@ -1,0 +1,13 @@
+# Minimal values for grafana/grafana chart
+adminUser: admin
+# adminPassword: ""   # (optional) you can set one, otherwise use the secret as you did
+
+sidecar:
+  dashboards:
+    enabled: true
+    label: grafana_dashboard
+    searchNamespace: ALL
+  datasources:
+    enabled: true
+    label: grafana_datasource
+    searchNamespace: ALL

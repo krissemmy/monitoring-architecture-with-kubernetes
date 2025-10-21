@@ -1,0 +1,82 @@
+# save as test-data.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: sample-logger
+  namespace: monitoring
+spec:
+  replicas: 1
+  selector:
+    matchLabels: { app: sample-logger }
+  template:
+    metadata:
+      labels: { app: sample-logger }
+    spec:
+      containers:
+        - name: logger
+          image: busybox:1.36
+          args:
+            - /bin/sh
+            - -c
+            - |
+              i=0; \
+              while true; do \
+                i=$$((i+1)); \
+                echo "{\"ts\":\"$$(date -Iseconds)\",\"app\":\"sample-logger\",\"level\":\"info\",\"msg\":\"hello from sample logger\",\"n\":$${i}}"; \
+                sleep 2; \
+              done
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: sample-metrics
+  namespace: monitoring-mimir
+spec:
+  replicas: 1
+  selector:
+    matchLabels: { app: sample-metrics }
+  template:
+    metadata:
+      labels: { app: sample-metrics }
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8080"
+        prometheus.io/path: "/metrics"
+    spec:
+      containers:
+        - name: exporter
+          image: python:3.11-slim
+          ports:
+            - name: http
+              containerPort: 8080
+          command: ["/bin/sh","-c"]
+          args:
+            - |
+              set -e
+              mkdir -p /app
+              cat >/app/exporter.py <<'PY'
+              import time, random
+              from prometheus_client import start_http_server, Counter, Gauge
+              c = Counter('sample_requests_total', 'Sample counter', ['route'])
+              g = Gauge('sample_temperature_celsius', 'Sample gauge')
+              start_http_server(8080)
+              while True:
+                  c.labels(route="/ping").inc()
+                  g.set(20 + random.random()*5)
+                  time.sleep(2)
+              PY
+              pip install --no-cache-dir prometheus_client
+              exec python /app/exporter.py
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: sample-metrics
+  namespace: monitoring-mimir
+spec:
+  selector: { app: sample-metrics }
+  ports:
+    - name: http
+      port: 8080
+      targetPort: http
