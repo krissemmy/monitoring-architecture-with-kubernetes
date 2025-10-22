@@ -3,6 +3,10 @@
 This repo shows how I’d deploy a monitoring stack on Kubernetes using Helm and simple YAML manifests.  
 It’s similar to the monitoring setup I’ve used in my previous organization(the logs based monitoring architecture), this time adapted fully for Kubernetes.
 
+<img width="1492" height="497" alt="Screenshot 2025-10-22 at 15 02 18" src="https://github.com/user-attachments/assets/094fd04b-7616-491c-97db-8f8fb0acf4fd" />
+
+_Mimir and Loki Charts on Grafana_
+
 ---
 
 ## Prerequisites
@@ -84,6 +88,10 @@ kubectl port-forward -n monitoring $POD_NAME 3000:3000
 # Get Grafana password (run on another terminal)
 kubectl get secret -n monitoring grafana -o jsonpath="{.data.admin-password}" | base64 --decode; echo
 ```
+
+<img width="3294" height="503" alt="Screenshot 2025-10-22 at 15 00 10" src="https://github.com/user-attachments/assets/485af7e4-37f5-4f0c-8843-a0487edebaf2" />
+
+_Mimir and Loki Charts on Grafana_
 
 ---
 
