@@ -7,7 +7,7 @@ Two ways to deploy:
 - `single-cluster-setup/` — simple one-cluster install with Helm values in this folder.
 - `**base/` + `overlays/` — Kustomize + Helm for multi-env (e.g., dev/prod/staging).
 
-<img width="760" height="301" alt="Screenshot 2025-10-24 at 15 20 48" src="https://github.com/user-attachments/assets/43290d7c-50dc-43ba-b620-488fe53523b3" />
+<img width="1493" height="588" alt="Screenshot 2025-10-24 at 15 35 21" src="https://github.com/user-attachments/assets/c59b1e94-2616-43c6-a7cb-42eafdaf65b8" />
 
 _Alloy UI_
 
