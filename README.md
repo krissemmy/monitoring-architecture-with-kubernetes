@@ -68,6 +68,24 @@ make pf
 
 - Then open Alloy UI at http://localhost:12345
 
+
+### Helpful commands
+
+```bash
+# dev
+kustomize build overlays/dev | kubectl apply -f -
+kubectl -n monitoring rollout status deploy/alloy
+kubectl -n monitoring get pods,svc,endpoints -l app.kubernetes.io/name=alloy -o wide
+
+# port-forward Alloy UI
+kubectl -n monitoring port-forward deploy/alloy 12345:12345
+# open http://127.0.0.1:12345
+
+# check active config and logs
+kubectl -n monitoring exec deploy/alloy -c alloy -- sh -c 'sed -n "1,220p" /etc/alloy/config.alloy'
+kubectl -n monitoring logs deploy/alloy -c alloy --tail=200
+```
+
 ---
 
 ## What’s deployed
