@@ -9,6 +9,7 @@ diff:
 
 delete:
 	@kustomize build overlays/$(ENV) --enable-helm --load-restrictor=LoadRestrictionsNone | kubectl delete -f - || true
+	@kubectl delete -n monitoring namespace || true
 
 pf:
 	@set -e; \

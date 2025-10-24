@@ -45,7 +45,25 @@ alloy:
       prometheus.scrape "pods" {
         targets         = discovery.kubernetes.pods.targets
         scrape_interval = "30s"
-        forward_to      = [prometheus.remote_write.mimir.receiver]
+        forward_to      = [prometheus.relabel.metrics.receiver]
+      }
+      prometheus.relabel "metrics" {
+        rule {
+          action       = "replace"
+          replacement  = "kind-dev"
+          target_label = "cluster"
+        }
+        rule {
+          action       = "replace"
+          replacement  = "dev"
+          target_label = "environment"
+        }
+        rule {
+          action       = "replace"
+          replacement  = "local"
+          target_label = "region"
+        }
+        forward_to = [prometheus.remote_write.mimir.receiver]
       }
       prometheus.remote_write "mimir" {
         endpoint { url = "http://mimir.monitoring:9009/api/v1/push" }
