@@ -1,7 +1,10 @@
 # Kubernetes Monitoring Setup (Alloy + Loki + Mimir + Grafana )
 
-This repo shows how I’d deploy a monitoring stack on Kubernetes using Helm and simple YAML manifests.  
-It’s similar to the monitoring setup I’ve used in my previous organization(the logs based monitoring architecture), this time adapted fully for Kubernetes.
+This repo shows how I’d deploy a monitoring stack on Kubernetes using Helm and simple YAML manifests.
+
+- single-cluster-setup/ considers for single cluster
+- base/ and overlay/ using kustomize considers for multi-cluster
+
 
 <img width="1492" height="497" alt="Screenshot 2025-10-22 at 15 02 18" src="https://github.com/user-attachments/assets/094fd04b-7616-491c-97db-8f8fb0acf4fd" />
 
@@ -14,7 +17,8 @@ _Mimir and Loki Charts on Grafana_
 Make sure the following are ready before running the commands:
 
 - Docker Desktop (Kubernetes cluster enabled)
-- Helm installed (`brew install helm` on macOS)
+- Helm installed (`brew install helm` on MacOS)
+- kustomize installed(`brew install kustomize` on MacOS)
 - kubectl configured and pointing to your local cluster
 
 You can check with:
@@ -22,6 +26,7 @@ You can check with:
 ```bash
 kubectl get nodes
 helm version
+kustomize --help
 ```
 
 ---
@@ -30,10 +35,15 @@ helm version
 
 You can use the included Makefile for quick setup.
 
+```bash
+cd single-cluster-setup/
+```
+
 ### Create and start everything
 
 ```bash
-make up
+make create-namespace
+make apply ENV=<ENV_NAME> #e.g ENV=dev
 ```
 
 ### Check if all pods are running
@@ -45,53 +55,16 @@ make status
 ### Delete everything (clean up)
 
 ```bash
-make down
+make delete
 ```
 
-### Forward Grafana port
+### Forward Alloy UI port
 
 ```bash
 make pf
 ```
 
-- Then open Grafana at http://localhost:3000
-
-### Kill and remove everything(including namespaces, persistent volumes e.t.c)
-
-```bash
-make nuke
-```
-
----
-
-## Manual Deployment (step by step)
-
-To do it manually without `make`:
-
-```bash
-kubectl create namespace monitoring
-kubectl create namespace monitoring-mimir
-
-# Install components with Helm
-helm install --namespace monitoring alloy grafana/alloy -f alloy.values.yaml
-helm install --namespace monitoring -f loki.values.yaml loki grafana/loki
-helm install --namespace monitoring-mimir mimir grafana/mimir-distributed
-helm install --namespace monitoring grafana grafana/grafana -f grafana.values.yaml
-
-# create pod to generate sample metrics and logs
-kubectl apply -f test-app.yaml
-
-# Port-forward Grafana
-export POD_NAME=$(kubectl get pods -n monitoring -l "app.kubernetes.io/name=grafana" -o jsonpath="{.items[0].metadata.name}")
-kubectl port-forward -n monitoring $POD_NAME 3000:3000
-
-# Get Grafana password (run on another terminal)
-kubectl get secret -n monitoring grafana -o jsonpath="{.data.admin-password}" | base64 --decode; echo
-```
-
-<img width="3294" height="503" alt="Screenshot 2025-10-22 at 15 00 10" src="https://github.com/user-attachments/assets/485af7e4-37f5-4f0c-8843-a0487edebaf2" />
-
-_Mimir and Loki Charts on Grafana_
+- Then open Alloy UI at http://localhost:12345
 
 ---
 
@@ -99,8 +72,8 @@ _Mimir and Loki Charts on Grafana_
 
 - [Grafana Alloy Docs](https://grafana.com/docs/alloy/latest/set-up/install/kubernetes/)
 
-- [Grafana Loki Helm Chart](https://grafana.com/docs/loki/latest/setup/install/helm/install-microservices/)
+- [Grafana Loki logs in kubernetes](https://grafana.com/docs/alloy/latest/collect/logs-in-kubernetes/)
 
-- [Grafana Mimir Distributed Chart](https://grafana.com/docs/helm-charts/mimir-distributed/latest/get-started-helm-charts/)
+- [Grafana Mimir/prometheus relabel example](https://grafana.com/docs/alloy/latest/reference/components/prometheus/prometheus.relabel/)
 
 - [Grafana Helm Chart](https://grafana.com/docs/grafana/latest/setup-grafana/installation/helm/)

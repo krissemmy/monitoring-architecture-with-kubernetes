@@ -1,0 +1,73 @@
+controller:
+  type: deployment
+  deployment:
+    replicas: 1
+
+
+rbac:
+  create: true
+  extraRules:
+    - apiGroups: [""]
+      resources: ["pods", "pods/log", "namespaces", "nodes", "services", "endpoints"]
+      verbs: ["get", "list", "watch"]
+    - apiGroups: ["discovery.k8s.io"]
+      resources: ["endpointslices"]
+      verbs: ["get", "list", "watch"]
+    - apiGroups: ["networking.k8s.io"]
+      resources: ["ingresses"]
+      verbs: ["get", "list", "watch"]
+
+
+serviceAccount:
+  create: true
+  name: alloy
+
+podLabels:
+  app.kubernetes.io/name: alloy
+
+alloy:
+  image:
+    repository: grafana/alloy
+    tag: v1.11.2
+
+  configMap:
+    create: true
+    name: alloy
+    key: config.alloy
+    content: |
+      discovery.kubernetes "pods" {
+        role = "pod"
+      }
+      discovery.kubernetes "nodes" {
+        role = "node"
+      }
+
+      prometheus.scrape "pods" {
+        targets         = discovery.kubernetes.pods.targets
+        scrape_interval = "30s"
+        forward_to      = [prometheus.remote_write.mimir.receiver]
+      }
+      prometheus.remote_write "mimir" {
+        endpoint { url = "http://mimir.monitoring:9009/api/v1/push" }
+      }
+
+      loki.write "default" {
+        endpoint {
+          url = "http://loki.monitoring:3100/loki/api/v1/push"
+          headers = { "X-Scope-OrgID" = "1" }
+        }
+      }
+      loki.process "pipe" {
+        stage.static_labels {
+            values = {
+              cluster = "kind-prod",
+              environment = "prod",
+              region = "eu-west-1",
+            }
+          }
+        forward_to = [loki.write.default.receiver]
+      }
+      loki.source.kubernetes "pods" {
+        targets    = discovery.kubernetes.pods.targets
+        forward_to = [loki.process.pipe.receiver]
+      }
