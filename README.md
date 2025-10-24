@@ -4,11 +4,10 @@ This repo shows how I’d deploy a monitoring stack on Kubernetes using Helm and
 
 Two ways to deploy:
 
-- single-cluster-setup/ — simple one-cluster install with Helm values in this folder.
-- **base/ + overlays/ — Kustomize + Helm for multi-env (e.g., dev/prod/staging).
+- `single-cluster-setup/` — simple one-cluster install with Helm values in this folder.
+- `**base/` + `overlays/` — Kustomize + Helm for multi-env (e.g., dev/prod/staging).
 
-
-<img width="1492" height="497" alt="Screenshot 2025-10-22 at 15 02 18" src="https://github.com/user-attachments/assets/094fd04b-7616-491c-97db-8f8fb0acf4fd" />
+<img width="760" height="301" alt="Screenshot 2025-10-24 at 15 20 48" src="https://github.com/user-attachments/assets/43290d7c-50dc-43ba-b620-488fe53523b3" />
 
 _Alloy UI_
 
