@@ -2,13 +2,15 @@
 
 This repo shows how I’d deploy a monitoring stack on Kubernetes using Helm and simple YAML manifests.
 
-- single-cluster-setup/ considers for single cluster
-- base/ and overlay/ using kustomize considers for multi-cluster
+Two ways to deploy:
+
+- single-cluster-setup/ — simple one-cluster install with Helm values in this folder.
+- **base/ + overlays/ — Kustomize + Helm for multi-env (e.g., dev/prod/staging).
 
 
 <img width="1492" height="497" alt="Screenshot 2025-10-22 at 15 02 18" src="https://github.com/user-attachments/assets/094fd04b-7616-491c-97db-8f8fb0acf4fd" />
 
-_Mimir and Loki Charts on Grafana_
+_Alloy UI_
 
 ---
 
@@ -45,6 +47,7 @@ cd single-cluster-setup/
 make create-namespace
 make apply ENV=<ENV_NAME> #e.g ENV=dev
 ```
+> Kustomize build uses Helm charts under the hood, so make apply runs: `kustomize build overlays/$ENV --enable-helm --load-restrictor=LoadRestrictionsNone | kubectl apply -f -`
 
 ### Check if all pods are running
 
@@ -65,6 +68,18 @@ make pf
 ```
 
 - Then open Alloy UI at http://localhost:12345
+
+---
+
+## What’s deployed
+
+1. Alloy as a Deployment (1 replica) with:
+    - Kubernetes discovery (pods/endpoints/…)
+    - Metrics scrape for annotated targets
+    - prometheus.relabel to add cluster, environment, region
+    - prometheus.remote_write → Mimir
+    - loki.source.kubernetes via K8s API → Loki
+    - HTTP UI on :12345
 
 ---
 
